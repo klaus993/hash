@@ -11,6 +11,8 @@ typedef struct nodo_hash {
 
 struct hash {
 	nodo_hash_t **vector;
+	size_t cantidad;
+	hash_destruir_dato_t destruir_dato;
 };
 
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
@@ -47,7 +49,7 @@ size_t hash_cantidad(const hash_t *hash) {
 }
 
 void hash_destruir(hash_t *hash) {
-	free(hash);
+
 }
 
 /* Iterador del hash */
