@@ -17,6 +17,33 @@ struct hash {
 
 };
 
+typedef enum = {VACIO, OCUPADO, BORRADO};
+
+/* Recibe un puntero hacia un string y un puntero void hacia un valor y crea un 
+nodo con ese string como clave y con ese valor en caso de ser posible, y 
+devuelve el nodo. En caso contrario devuelve NULL. */
+nodo_hash_t* nodo_hash_crear(char* clave, void *valor) {
+	nodo_hash_t* nodo = malloc(sizeof(nodo_hash_t));
+	if (!nodo) return NULL;
+	nodo->clave = clave;
+	nodo->valor = valor;
+	return nodo;
+}
+
+/* Recibe la estructura hash y la variable redimension de tipo size_t y duplica
+o reduce a la mitad la capacidad de la estructura (rehash). Devuelve la nueva
+estructura rehasheada, o NULL en caso de no poder haberse hecho la redimensión. */
+hash_redimensionar(hash_t* hash, size_t redimension) {
+	hash_t* hash_nuevo = malloc(redimension * sizeof(nodo_hash_t*));
+	size_t indice = 0;
+	while (hash->cantidad) {
+		if (hash->vector[indice] == OCUPADO) {
+			
+	if(redimension > 0 && !datos_nuevos) return false;
+	hash->datos = datos_nuevos;
+	hash->capacidad = redimension;
+	return true;
+}	
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
@@ -33,6 +60,14 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
+	if ((hash->cantidad / hash->capacidad) >= 0.7) 
+	hash_redimensionar(hash, hash->tamaño * 2);
+	size_t indice = h(clave);//FUNCION A CONSEGUIR
+	nodo_hash_t* nodo = nodo_crear(clave, valor);
+	if (!nodo) return false;
+	while (hash->vector[indice] != VACIO) indice++;
+	hash->vector[indice] = nodo;
+	hash->cantidad++; 
 	return true;
 }
 
@@ -49,7 +84,7 @@ bool hash_pertenece(const hash_t *hash, const char *clave) {
 }
 
 size_t hash_cantidad(const hash_t *hash) {
-	return 0;
+	return hash->cantidad;
 }
 
 void hash_destruir(hash_t *hash) {
