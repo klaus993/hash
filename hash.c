@@ -13,18 +13,20 @@ struct hash {
 	nodo_hash_t **vector;
 	size_t cantidad;
 	hash_destruir_dato_t destruir_dato;
+	size_t tamaño;
 };
 
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
-	if (hash == NULL) {
-		return NULL;
-	}
+	if (!hash) return NULL;
 	hash->vector = malloc(TAM_INICIAL * sizeof(nodo_hash_t*));
-	if (hash->vector == NULL) {
+	if (!hash->vector) {
 		free(hash);
 		return NULL;
 	}
+	if (!destruir_dato) hash->destruir_dato = NULL;
+	else hash->destruir_dato = destruir_dato;
+	hash->cantidad = 0;s
 	return hash;
 }
 
