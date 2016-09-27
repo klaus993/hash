@@ -12,8 +12,9 @@ typedef struct nodo_hash {
 struct hash {
 	nodo_hash_t **vector;
 	size_t cantidad;
-	hash_destruir_dato_t destruir_dato;
 	size_t tamaño;
+	hash_destruir_dato_t destruir_dato;
+
 };
 
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
@@ -26,7 +27,8 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	}
 	if (!destruir_dato) hash->destruir_dato = NULL;
 	else hash->destruir_dato = destruir_dato;
-	hash->cantidad = 0;s
+	hash->cantidad = 0;
+	hash->tamaño = TAM_INICIAL;
 	return hash;
 }
 
@@ -63,10 +65,9 @@ struct hash_iter {
 
 hash_iter_t *hash_iter_crear(const hash_t *hash) {
 	hash_iter_t *hash_iter = malloc(sizeof(hash_iter_t));
-	if (hash_iter == NULL) {
-		return NULL;
-	}
+	if (!hash_iter) return NULL;
 	hash_iter->hash = hash;
+	hash_iter->pos = 0;
 	return hash_iter;
  }
 
