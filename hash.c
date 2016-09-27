@@ -14,7 +14,6 @@ struct hash {
 	size_t cantidad;
 	size_t tamaño;
 	hash_destruir_dato_t destruir_dato;
-
 };
 
 typedef enum = {VACIO, OCUPADO, BORRADO};
@@ -43,7 +42,8 @@ hash_redimensionar(hash_t* hash, size_t redimension) {
 	hash->datos = datos_nuevos;
 	hash->capacidad = redimension;
 	return true;
-}	
+}
+	
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
@@ -104,7 +104,7 @@ hash_iter_t *hash_iter_crear(const hash_t *hash) {
 	hash_iter->hash = hash;
 	hash_iter->pos = 0;
 	return hash_iter;
- }
+}
 
 bool hash_iter_avanzar(hash_iter_t *iter) {
 	return true;
