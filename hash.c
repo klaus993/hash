@@ -1,7 +1,9 @@
 #include "hash.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define TAM_INICIAL 10
+#define FACTOR_REDIMESION 0.70
 
 /*Definición el tipo estado_t. */
 typedef enum = {VACIO, OCUPADO, BORRADO} estado_t;
@@ -14,7 +16,7 @@ typedef struct nodo_hash {
 } nodo_hash_t;
 
 struct hash {
-	nodo_hash_t **vector;
+	nodo_hash_t **tabla;
 	size_t cantidad;
 	size_t capacidad;
 	hash_destruir_dato_t destruir_dato;
@@ -34,12 +36,12 @@ nodo_hash_t* nodo_hash_crear(void) {
 o reduce a la mitad la capacidad de la estructura (rehash). Devuelve la nueva
 estructura rehasheada, o NULL en caso de no poder haberse hecho la redimensión. */
 bool hash_redimensionar(hash_t* hash, size_t redimension) {
-	hash_t* hash_nuevo = hash_crear(hash->destruir_dato);/*Problema, TAMINICIAL en crear es global*/
-	if(redimension > 0 && hash_nuevo) return false;
+	nodo_hash_t* tabla_nueva = malloc(redimension * sizeof(nodo_hash_t);
+	if(redimension > 0 && !tabla_nueva) return false;
 	hash->capacidad = redimension;
-	for ( int i = 0; i < redimension; i++) {/*hay que rehashear espacios con estado BORRADO?*/
-		if (hash->vector[i]->clave)
-		hash_guardar(hash_nuevo, hash->vector[i]->clave, hash->vector[i]->valor);
+	for ( int i = 0; i < redimension; i++) {
+		if (hash->tabla[i]->clave);
+		hash_guardar(hash_nuevo, hash->tabla[i]->clave, hash->tabla[i]->valor);
 	}
 	return true;
 }
@@ -47,19 +49,19 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
-	hash->vector = malloc(TAM_INICIAL * sizeof(nodo_hash_t*));
-	if (!hash->vector) {
+	hash->tabla = malloc(TAM_INICIAL * sizeof(nodo_hash_t*));
+	if (!hash->tabla) {
 		free(hash);
 		return NULL;
 	}
 	for (int i = 0; i < TAM_INICIAL; i++) {
 		nodo_hash_t* nodo = nodo_crear();
 		if (!nodo) {
-			free(hash->vector);
+			free(hash->tabla);
 			free(hash);	
 			return NULL;
 		}
-		hash->vector[i] = nodo;
+		hash->tabla[i] = nodo;
 	}
 	if (!destruir_dato) hash->destruir_dato = NULL;
 	else hash->destruir_dato = destruir_dato;
@@ -69,19 +71,19 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
-	if ((hash->cantidad / hash->capacidad) >= 0.7) {
+	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION) {
 		if (!hash_redimensionar(hash, hash->tamaño * 2)) return false;
 	}
 	size_t indice = hash(clave, hash->capacidad);//FUNCION A CONSEGUIR
-	if (hash_obtener(hash, clave)){
-		while (hash->vector[indice]->clave != clave) indice++;
+	if (hash_pertenece(hash, clave)){
+		while (hash->tabla[indice]->clave != clave) indice++;
 	else {
-		while(hash->vector[indice]->estado != VACIO) indice++;
-		hash->vector[indice]->clave = clave;
-		hash->vector[indice]->estado = OCUPADO;
+		while(hash->tabla[indice]->estado != VACIO) indice++;
+		hash->tabla[indice]->clave = clave;
+		hash->tabla[indice]->estado = OCUPADO;
+		hash->cantidad++;
 	}
-	hash->vector[indice]->valor = valor;
-	hash->cantidad++; 
+	hash->tabla[indice]->valor = dato;
 	return true;
 }
 
@@ -90,6 +92,7 @@ void *hash_borrar(hash_t *hash, const char *clave) {
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave) {
+	if (
 	return NULL;
 }
 
