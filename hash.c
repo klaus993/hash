@@ -1,4 +1,5 @@
 #include "hash.h"
+#include "f_hash.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,7 +40,7 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	nodo_hash_t* tabla_nueva = malloc(redimension * sizeof(nodo_hash_t);
 	if(redimension > 0 && !tabla_nueva) return false;
 	hash->capacidad = redimension;
-	for ( int i = 0; i < redimension; i++) {
+	for (int i = 0; i < redimension; i++) {
 		if (hash->tabla[i]->clave);
 		hash_guardar(hash_nuevo, hash->tabla[i]->clave, hash->tabla[i]->valor);
 	}
@@ -95,7 +96,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 		if (!hash_redimensionar(hash, hash->capacidad * 2)) return false;
 	}
 	size_t indice = hash(clave, hash->capacidad);//FUNCION A CONSEGUIR
-	if (hash_pertenece(hash, clave)){
+	if (hash_pertenece(hash, clave))
 		while (hash->tabla[indice]->clave != clave) indice++;
 	else {
 		while(hash->tabla[indice]->estado != VACIO) indice++;
@@ -113,12 +114,21 @@ void *hash_borrar(hash_t *hash, const char *clave) {
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave) {
-	if (
-	return NULL;
+	if (!hash_pertenece(hash, clave)) return NULL;
+	size_t indice = hash(clave, hash->capacidad);
+	while (hash->tabla[indice] != VACIO) {
+		if (hash->tabla[indice] == clave) return hash->tabla[indice]->valor;
+		indice++;
+	}
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave) {
-	return true;
+	size_t indice = hash(clave, hash->capacidad);
+	while (hash->tabla[indice] != VACIO) {
+		if (hash->tabla[indice] == clave) return true;
+		indice++;
+	}
+	return false;
 }
 
 size_t hash_cantidad(const hash_t *hash) {
@@ -126,7 +136,12 @@ size_t hash_cantidad(const hash_t *hash) {
 }
 
 void hash_destruir(hash_t *hash) {
-
+	for (int i = 0; i < hash->capacidad; i++) {
+		if(hash->destruir_dato) destruir_dato(hash->tabla[i]->valor);
+		free(hash->tabla[i]);
+	}
+	free(hash->tabla);
+	free(hash);
 }
 
 /* Iterador del hash */
