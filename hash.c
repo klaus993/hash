@@ -4,12 +4,13 @@
 #include <string.h>
 
 #define TAM_INICIAL 10
-#define FACTOR_REDIMESION 0.70
+#define FACTOR_REDIMESION_AGRANDAR 0.70
+#define FACTOR_REDIMENSION_ACHICAR 0.15
 
 /*Definición el tipo estado_t. */
 typedef enum = {VACIO, OCUPADO, BORRADO} estado_t;
 
-/*Definición del struct nodo para la tabla de hash*/
+/*Definición del struct nodo para la tabla de hash. */
 typedef struct nodo_hash {
 	char *clave;
 	void *valor;
@@ -60,6 +61,7 @@ void guardar(nodo_hash_t **tabla, const char *clave, void *dato, size_t cantidad
 	}
 	if (hash_pertenece(hash, clave)) {
 		while (tabla[indice]->clave != clave) indice++;
+		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice]->valor);
 	}
 	else {
 		while(tabla[indice]->estado != VACIO) indice++;
@@ -95,7 +97,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
-	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION) {
+	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION_AGRANDAR) {
 		if (!hash_redimensionar(hash, hash->capacidad * 2)) return false;
 	}
 	guardar(hash->tabla, clave, dato, hash->cantidad, hash->capacidad);
@@ -159,17 +161,19 @@ hash_iter_t *hash_iter_crear(const hash_t *hash) {
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter) {
-	if (hash_iter_al_final) return false;
-	hash_iter->pos++;
+	if (hash_iter_al_final(hash_iter) return false;
+	do{
+		hash_iter->pos+;
+	} while (iter_hash->hash->tabla[hash_iter->pos)->estado != OCUPADO);
 	return true;
 }
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter) {
-	return hash_iter->hash->tabla[hash_iter->pos]->clave;// y si clave no está?
+	return hash_iter->hash->tabla[hash_iter->pos]->clave;
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter) {
-	return hash_iter->pos == hash_iter->hash->capacidad;//el final es cuando estoy en la ultima posicion del vector?
+	return hash_iter->pos == hash_iter->hash->capacidad;
 }
 
 void hash_iter_destruir(hash_iter_t* iter) {
