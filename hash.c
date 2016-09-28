@@ -41,12 +41,35 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	if(redimension > 0 && !tabla_nueva) return false;
 	hash->capacidad = redimension;
 	for (int i = 0; i < redimension; i++) {
-		if (hash->tabla[i]->clave);
-		hash_guardar(hash_nuevo, hash->tabla[i]->clave, hash->tabla[i]->valor);
+		if (hash->tabla[i]->clave && hash->tabla->estado == OCUPADO) {
+			guardar(tabla_nueva, hash->tabla->[i]->clave, hash->tabla[i]->valor, 
+			hash->cantidad, hash->capacidad);
+		}
+		free(hash->tabla[i]);
+	free(hash->tabla);
+	hash->tabla = tabla_nueva;
 	}
 	return true;
 }
-	
+/* Recibe una tabla de hash, una clave junto con su valor, la cantidad de elementos
+en la tabla y su capacidad e introduce la clave y su valor en la tabla. */
+void guardar(nodo_hash_t **tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
+	size_t indice = hash(clave, capacidad);
+	while (tabla[indice]->estado == OCUPADO) {
+		indice++;
+	}
+	if (hash_pertenece(hash, clave)) {
+		while (tabla[indice]->clave != clave) indice++;
+	}
+	else {
+		while(tabla[indice]->estado != VACIO) indice++;
+		tabla[indice]->clave = clave;
+		tabla[indice]->estado = OCUPADO;
+		cantidad++;
+	}
+	tabla[indice]->valor = dato;
+}
+//Hacer el strcpy y la funcion q aumenta pasos que no me acuerdo somo se llamaba
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
@@ -71,45 +94,15 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	return hash;
 }
 
-void guardar(nodo_hash_t **tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
-	size_t indice = hash(clave, capacidad);
-
-	while (tabla[indice]->estado == OCUPADO) {
-		indice++;
-	}
-
-	if (hash_pertenece(hash, clave)){
-		while (hash->tabla[indice]->clave != clave) indice++;
-	else {
-		while(hash->tabla[indice]->estado != VACIO) indice++;
-		hash->tabla[indice]->clave = clave;
-		hash->tabla[indice]->estado = OCUPADO;
-		hash->cantidad++;
-	}
-	hash->tabla[indice]->valor = dato;
-	return true;
-	}
-}
-
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION) {
 		if (!hash_redimensionar(hash, hash->capacidad * 2)) return false;
 	}
-	size_t indice = hash(clave, hash->capacidad);//FUNCION A CONSEGUIR
-	if (hash_pertenece(hash, clave))
-		while (hash->tabla[indice]->clave != clave) indice++;
-	else {
-		while(hash->tabla[indice]->estado != VACIO) indice++;
-		hash->tabla[indice]->clave = clave;
-		hash->tabla[indice]->estado = OCUPADO;
-		hash->cantidad++;
-	}
-	hash->tabla[indice]->valor = dato;
+	guardar(hash->tabla, clave, dato, hash->cantidad, hash->capacidad);
 	return true;
-	}
 }
-
-void *hash_borrar(hash_t *hash, const char *clave) {
+//CODIGO REPETIDO EN BORRAR, OBTENER Y PERTENECE?
+void *hash_borrar(hash_t *hash, const char *clave) {// destruyo dato si es dinamico?
 	if (!hash_pertenece(hash, clave)) return NULL;
 	size_t indice = hash(clave, hash->capacidad);
 	while (hash->tabla[indice] != VACIO) {
@@ -138,7 +131,7 @@ bool hash_pertenece(const hash_t *hash, const char *clave) {
 }
 
 size_t hash_cantidad(const hash_t *hash) {
-	return hash->cantidad
+	return hash->cantidad;
 }
 
 void hash_destruir(hash_t *hash) {
@@ -166,18 +159,19 @@ hash_iter_t *hash_iter_crear(const hash_t *hash) {
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter) {
-	if (hash_iter->pos == hash_iter->hash->capacidad)
+	if (hash_iter_al_final) return false;
+	hash_iter->pos++;
 	return true;
 }
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter) {
-	return 0;
+	return hash_iter->hash->tabla[hash_iter->pos]->clave;// y si clave no está?
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter) {
-	return true;
+	return hash_iter->pos == hash_iter->hash->capacidad;//el final es cuando estoy en la ultima posicion del vector?
 }
 
 void hash_iter_destruir(hash_iter_t* iter) {
-
+	free(hash_iter);
 }
