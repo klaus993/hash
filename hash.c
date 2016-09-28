@@ -108,10 +108,9 @@ void *hash_borrar(hash_t *hash, const char *clave) {// destruyo dato si es dinam
 	if (!hash_pertenece(hash, clave)) return NULL;
 	size_t indice = hash(clave, hash->capacidad);
 	while (hash->tabla[indice] != VACIO) {
-		if (hash->tabla[indice] == clave) {
-			void *aux = hash->tabla[indice]->valor;
-			if(hash->destruir_dato) hash->destruir_dato(aux);
+		if (hash->tabla[indice] == clave) hash->tabla[indice]->estado = BORRADO;
 		indice++;
+	}
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave) {
