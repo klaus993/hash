@@ -71,6 +71,26 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	return hash;
 }
 
+void guardar(nodo_hash_t **tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
+	size_t indice = hash(clave, capacidad);
+
+	while (tabla[indice]->estado == OCUPADO) {
+		indice++;
+	}
+
+	if (hash_pertenece(hash, clave)){
+		while (hash->tabla[indice]->clave != clave) indice++;
+	else {
+		while(hash->tabla[indice]->estado != VACIO) indice++;
+		hash->tabla[indice]->clave = clave;
+		hash->tabla[indice]->estado = OCUPADO;
+		hash->cantidad++;
+	}
+	hash->tabla[indice]->valor = dato;
+	return true;
+	}
+}
+
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION) {
 		if (!hash_redimensionar(hash, hash->capacidad * 2)) return false;
@@ -86,6 +106,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	}
 	hash->tabla[indice]->valor = dato;
 	return true;
+	}
 }
 
 void *hash_borrar(hash_t *hash, const char *clave) {
