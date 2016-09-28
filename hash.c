@@ -95,7 +95,6 @@ void *hash_borrar(hash_t *hash, const char *clave) {
 		if (hash->tabla[indice] == clave) {
 			void *aux = hash->tabla[indice]->valor;
 			if(hash->destruir_dato) hash->destruir_dato(aux);
-			break;
 		indice++;
 }
 
@@ -146,6 +145,7 @@ hash_iter_t *hash_iter_crear(const hash_t *hash) {
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter) {
+	if (hash_iter->pos == hash_iter->hash->capacidad)
 	return true;
 }
 
