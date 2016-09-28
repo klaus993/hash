@@ -89,7 +89,14 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 }
 
 void *hash_borrar(hash_t *hash, const char *clave) {
-	return NULL;
+	if (!hash_pertenece(hash, clave)) return NULL;
+	size_t indice = hash(clave, hash->capacidad);
+	while (hash->tabla[indice] != VACIO) {
+		if (hash->tabla[indice] == clave) {
+			void *aux = hash->tabla[indice]->valor;
+			if(hash->destruir_dato) hash->destruir_dato(aux);
+			break;
+		indice++;
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave) {
@@ -111,12 +118,12 @@ bool hash_pertenece(const hash_t *hash, const char *clave) {
 }
 
 size_t hash_cantidad(const hash_t *hash) {
-	return hash->cantidad;
+	return hash->cantidad
 }
 
 void hash_destruir(hash_t *hash) {
 	for (int i = 0; i < hash->capacidad; i++) {
-		if(hash->destruir_dato) destruir_dato(hash->tabla[i]->valor);
+		if(hash->destruir_dato) hash->destruir_dato(hash->tabla[i]->valor);
 		free(hash->tabla[i]);
 	}
 	free(hash->tabla);
