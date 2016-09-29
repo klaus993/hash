@@ -18,7 +18,7 @@ typedef struct nodo_hash {
 } nodo_hash_t;
 
 struct hash {
-	nodo_hash_t **tabla;
+	nodo_hash_t *tabla;
 	size_t cantidad;
 	size_t capacidad;
 	hash_destruir_dato_t destruir_dato;
@@ -27,11 +27,35 @@ struct hash {
 /* Recibe un puntero hacia un string y un puntero void hacia un valor y crea un 
 nodo con ese string como clave y con ese valor en caso de ser posible, y 
 devuelve el nodo. En caso contrario devuelve NULL. */
-nodo_hash_t* nodo_hash_crear(void) {
-	nodo_hash_t* nodo = malloc(sizeof(nodo_hash_t));
+nodo_hash_t nodo_hash_crear() {
+	nodo_hash_t nodo = malloc(sizeof(nodo_hash_t));
 	if (!nodo) return NULL;
 	nodo->estado = VACIO;
 	return nodo;
+}
+
+hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
+	hash_t *hash = malloc(sizeof(hash_t));
+	if (!hash) return NULL;
+	hash->tabla = malloc(TAM_INICIAL * sizeof(nodo_hash_t));
+	if (!hash->tabla) {
+		free(hash);
+		return NULL;
+	}
+	nodo_hash_t nodo;
+	for (int i = 0; i < TAM_INICIAL; i++) {
+		nodo = nodo_crear();
+		if (!nodo) {
+			free(hash->tabla);
+			free(hash);	
+			return NULL;
+		}
+		hash->tabla[i] = nodo;
+	}
+	hash->destruir_dato = destruir_dato;
+	hash->cantidad = 0;
+	hash->capacidad = TAM_INICIAL;
+	return hash;
 }
 
 /* Recibe la estructura hash y la variable redimension de tipo size_t y duplica
@@ -47,54 +71,32 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 			hash->cantidad, hash->capacidad);
 		}
 		free(hash->tabla[i]);
+	}
 	free(hash->tabla);
 	hash->tabla = tabla_nueva;
-	}
 	return true;
 }
+
 /* Recibe una tabla de hash, una clave junto con su valor, la cantidad de elementos
 en la tabla y su capacidad e introduce la clave y su valor en la tabla. */
-void guardar(nodo_hash_t **tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
+void guardar(nodo_hash_t *tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
 	size_t indice = hash(clave, capacidad);
-	while (tabla[indice]->estado == OCUPADO) {
+	while (tabla[indice].estado == OCUPADO) {
 		indice++;
 	}
 	if (hash_pertenece(hash, clave)) {
-		while (tabla[indice]->clave != clave) indice++;
-		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice]->valor);
+		while (tabla[indice].clave != clave) indice++;
+		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice].valor);
 	}
 	else {
-		while(tabla[indice]->estado != VACIO) indice++;
-		tabla[indice]->clave = clave;
-		tabla[indice]->estado = OCUPADO;
+		while(tabla[indice].estado != VACIO) indice++;
+		tabla[indice].clave = clave;
+		tabla[indice].estado = OCUPADO;
 		cantidad++;
 	}
 	tabla[indice]->valor = dato;
 }
 //Hacer el strcpy y la funcion q aumenta pasos que no me acuerdo somo se llamaba
-hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
-	hash_t *hash = malloc(sizeof(hash_t));
-	if (!hash) return NULL;
-	hash->tabla = malloc(TAM_INICIAL * sizeof(nodo_hash_t*));
-	if (!hash->tabla) {
-		free(hash);
-		return NULL;
-	}
-	for (int i = 0; i < TAM_INICIAL; i++) {
-		nodo_hash_t* nodo = nodo_crear();
-		if (!nodo) {
-			free(hash->tabla);
-			free(hash);	
-			return NULL;
-		}
-		hash->tabla[i] = nodo;
-	}
-	if (!destruir_dato) hash->destruir_dato = NULL;
-	else hash->destruir_dato = destruir_dato;
-	hash->cantidad = 0;
-	hash->capacidad = TAM_INICIAL;
-	return hash;
-}
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION_AGRANDAR) {
