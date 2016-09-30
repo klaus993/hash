@@ -4,11 +4,12 @@
 #include <string.h>
 
 #define TAM_INICIAL 10
-#define FACTOR_REDIMESION_AGRANDAR 0.70
-#define FACTOR_REDIMENSION_ACHICAR 0.15
+#define FACTOR_CARGA_AGRANDAR 0.70
+#define FACTOR_CARGA_ACHICAR 0.15
+#define FACTOR_REDIMENSION 2
 
 /*Definición el tipo estado_t. */
-typedef enum = {VACIO, OCUPADO, BORRADO} estado_t;
+typedef enum estado {VACIO, OCUPADO, BORRADO} estado_t;
 
 /*Definición del struct nodo para la tabla de hash. */
 typedef struct nodo_hash {
@@ -27,8 +28,8 @@ struct hash {
 /* Recibe un puntero hacia un string y un puntero void hacia un valor y crea un 
 nodo con ese string como clave y con ese valor en caso de ser posible, y 
 devuelve el nodo. En caso contrario devuelve NULL. */
-nodo_hash_t nodo_hash_crear() {
-	nodo_hash_t nodo = malloc(sizeof(nodo_hash_t));
+nodo_hash_t *nodo_hash_crear() {
+	nodo_hash_t *nodo = malloc(sizeof(nodo_hash_t));
 	if (!nodo) return NULL;
 	nodo->estado = VACIO;
 	return nodo;
@@ -42,15 +43,15 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 		free(hash);
 		return NULL;
 	}
-	nodo_hash_t nodo;
+	nodo_hash_t *nodo;
 	for (int i = 0; i < TAM_INICIAL; i++) {
-		nodo = nodo_crear();
+		nodo = nodo_hash_crear();
 		if (!nodo) {
 			free(hash->tabla);
 			free(hash);	
 			return NULL;
 		}
-		hash->tabla[i] = nodo;
+		hash->tabla[i] = *nodo;
 	}
 	hash->destruir_dato = destruir_dato;
 	hash->cantidad = 0;
@@ -58,17 +59,45 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	return hash;
 }
 
+void incrementar(size_t *indice) {
+	*indice += 1;
+}
+
+/* Recibe una tabla de hash, una clave junto con su valor, la cantidad de elementos
+en la tabla y su capacidad e introduce la clave y su valor en la tabla. 
+Devuelve true si se debe incrementar el miembro cantidad del hash, false en caso contrario. */
+void guardar(nodo_hash_t *tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
+	size_t indice = hash(clave, capacidad);
+	bool flag;
+	while (tabla[indice].estado == OCUPADO) {
+		incrementar(&indice);
+	}
+	if (hash_pertenece(hash, clave)) {  // Está mal, no se puede usar hash_pertenece, ya que recibe un hash por parámetro
+		while (strcmp(tabla[indice].clave, clave) != 0) incrementar(&indice);
+		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice].valor);
+		flag = false;
+	} else {
+		while(tabla[indice].estado != VACIO) incrementar(&indice);
+		char clave_copiada[strlen(clave) + 1];  // El "+ 1" es para que entre el \0
+		strcpy(copiar, clave_copiada);
+		tabla[indice].clave = clave_copiada;
+		tabla[indice].estado = OCUPADO;
+		flag = true;
+	}
+	tabla[indice]->valor = dato;
+	return flag;
+}
+
 /* Recibe la estructura hash y la variable redimension de tipo size_t y duplica
 o reduce a la mitad la capacidad de la estructura (rehash). Devuelve la nueva
 estructura rehasheada, o NULL en caso de no poder haberse hecho la redimensión. */
 bool hash_redimensionar(hash_t* hash, size_t redimension) {
-	nodo_hash_t* tabla_nueva = malloc(redimension * sizeof(nodo_hash_t);
+	nodo_hash_t* tabla_nueva = malloc(redimension * sizeof(nodo_hash_t));
 	if(redimension > 0 && !tabla_nueva) return false;
 	hash->capacidad = redimension;
 	for (int i = 0; i < redimension; i++) {
-		if (hash->tabla[i]->clave && hash->tabla->estado == OCUPADO) {
-			guardar(tabla_nueva, hash->tabla->[i]->clave, hash->tabla[i]->valor, 
-			hash->cantidad, hash->capacidad);
+		if (hash->tabla[i].clave && hash->tabla[i].estado == OCUPADO) {
+			guardar(tabla_nueva, hash->tabla->[i].clave, hash->tabla[i].valor, hash->cantidad, hash->capacidad);
 		}
 		free(hash->tabla[i]);
 	}
@@ -77,41 +106,21 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	return true;
 }
 
-/* Recibe una tabla de hash, una clave junto con su valor, la cantidad de elementos
-en la tabla y su capacidad e introduce la clave y su valor en la tabla. */
-void guardar(nodo_hash_t *tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
-	size_t indice = hash(clave, capacidad);
-	while (tabla[indice].estado == OCUPADO) {
-		indice++;
-	}
-	if (hash_pertenece(hash, clave)) {
-		while (tabla[indice].clave != clave) indice++;
-		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice].valor);
-	}
-	else {
-		while(tabla[indice].estado != VACIO) indice++;
-		tabla[indice].clave = clave;
-		tabla[indice].estado = OCUPADO;
-		cantidad++;
-	}
-	tabla[indice]->valor = dato;
-}
-//Hacer el strcpy y la funcion q aumenta pasos que no me acuerdo somo se llamaba
-
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
-	if ((hash->cantidad / hash->capacidad) >= FACTOR_REDIMENSION_AGRANDAR) {
-		if (!hash_redimensionar(hash, hash->capacidad * 2)) return false;
+	if ((hash->cantidad / hash->capacidad) >= FACTOR_CARGA_AGRANDAR) {
+		if (!hash_redimensionar(hash, hash->capacidad * FACTOR_REDIMENSION)) return false;
 	}
-	guardar(hash->tabla, clave, dato, hash->cantidad, hash->capacidad);
+	if(guardar(hash->tabla, clave, dato, ash->cantidad, hash->capacidad)) hash->cantidad++;
 	return true;
 }
+
 //CODIGO REPETIDO EN BORRAR, OBTENER Y PERTENECE?
-void *hash_borrar(hash_t *hash, const char *clave) {// destruyo dato si es dinamico?
+void *hash_borrar(hash_t *hash, const char *clave) { // destruyo dato si es dinamico?
 	if (!hash_pertenece(hash, clave)) return NULL;
 	size_t indice = hash(clave, hash->capacidad);
 	while (hash->tabla[indice] != VACIO) {
-		if (hash->tabla[indice] == clave) hash->tabla[indice]->estado = BORRADO;
-		indice++;
+		if (strcmp(hash->tabla[indice].clave, clave) == 0) hash->tabla[indice].estado = BORRADO;
+		incrementar(&indice);
 	}
 }
 
@@ -120,7 +129,7 @@ void *hash_obtener(const hash_t *hash, const char *clave) {
 	size_t indice = hash(clave, hash->capacidad);
 	while (hash->tabla[indice] != VACIO) {
 		if (hash->tabla[indice] == clave) return hash->tabla[indice]->valor;
-		indice++;
+		incrementar(&indice);
 	}
 }
 
@@ -128,7 +137,7 @@ bool hash_pertenece(const hash_t *hash, const char *clave) {
 	size_t indice = hash(clave, hash->capacidad);
 	while (hash->tabla[indice] != VACIO) {
 		if (hash->tabla[indice] == clave) return true;
-		indice++;
+		incrementar(&indice);
 	}
 	return false;
 }
