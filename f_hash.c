@@ -67,7 +67,7 @@ uint32_t lookup3 (
   return c;
 }
 
-unsigned int hash(const char *word, unsigned int hashTableSize){
+unsigned int fhash(const char *word, unsigned int hashTableSize){
   unsigned int initval;
   unsigned int hashAddress;
 

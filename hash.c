@@ -25,16 +25,6 @@ struct hash {
 	hash_destruir_dato_t destruir_dato;
 };
 
-/* Recibe un puntero hacia un string y un puntero void hacia un valor y crea un 
-nodo con ese string como clave y con ese valor en caso de ser posible, y 
-devuelve el nodo. En caso contrario devuelve NULL. */
-nodo_hash_t *nodo_hash_crear() {
-	nodo_hash_t *nodo = malloc(sizeof(nodo_hash_t));
-	if (!nodo) return NULL;
-	nodo->estado = VACIO;
-	return nodo;
-}
-
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 	hash_t *hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
@@ -43,48 +33,37 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 		free(hash);
 		return NULL;
 	}
-	nodo_hash_t *nodo;
-	for (int i = 0; i < TAM_INICIAL; i++) {
-		nodo = nodo_hash_crear();
-		if (!nodo) {
-			free(hash->tabla);
-			free(hash);	
-			return NULL;
-		}
-		hash->tabla[i] = *nodo;
-	}
+	for (int i = 0; i < TAM_INICIAL; i++) hash->tabla[i].estado = VACIO;
 	hash->destruir_dato = destruir_dato;
 	hash->cantidad = 0;
 	hash->capacidad = TAM_INICIAL;
 	return hash;
 }
 
+/*Reibe un puntero a un size_t e incrementa su valor en uno. */
 void incrementar(size_t *indice) {
 	*indice += 1;
 }
 
-/* Recibe una tabla de hash, una clave junto con su valor, la cantidad de elementos
-en la tabla y su capacidad e introduce la clave y su valor en la tabla. 
+/* Recibe una tabla de hash, una clave junto con su valor, y su capacidad e introduce la clave y su valor en la tabla. 
 Devuelve true si se debe incrementar el miembro cantidad del hash, false en caso contrario. */
-void guardar(nodo_hash_t *tabla, const char *clave, void *dato, size_t cantidad, size_t capacidad) {
-	size_t indice = hash(clave, capacidad);
-	bool flag;
-	while (tabla[indice].estado == OCUPADO) {
+bool guardar(nodo_hash_t *tabla, char *clave, void *dato, size_t capacidad) {
+	size_t indice = fhash(clave, (unsigned int)capacidad);
+	bool flag = false;
+	while (tabla[indice].estado != VACIO) {
+		if (tabla[indice].estado == OCUPADO && strcmp(tabla[indice].clave, clave) == 0) {
+			tabla[indice].valor = dato;
+			return flag;
+		}
+		if (indice == capacidad - 1) indice = -1;
 		incrementar(&indice);
 	}
-	if (hash_pertenece(hash, clave)) {  // Está mal, no se puede usar hash_pertenece, ya que recibe un hash por parámetro
-		while (strcmp(tabla[indice].clave, clave) != 0) incrementar(&indice);
-		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice].valor);
-		flag = false;
-	} else {
-		while(tabla[indice].estado != VACIO) incrementar(&indice);
-		char clave_copiada[strlen(clave) + 1];  // El "+ 1" es para que entre el \0
-		strcpy(copiar, clave_copiada);
-		tabla[indice].clave = clave_copiada;
-		tabla[indice].estado = OCUPADO;
-		flag = true;
-	}
-	tabla[indice]->valor = dato;
+	char clave_copiada[strlen(clave) + 1];
+	strcpy(clave_copiada, clave);
+	tabla[indice].clave = clave_copiada;
+	tabla[indice].estado = OCUPADO;
+	tabla[indice].valor = dato;
+	flag = true;
 	return flag;
 }
 
@@ -97,49 +76,60 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	hash->capacidad = redimension;
 	for (int i = 0; i < redimension; i++) {
 		if (hash->tabla[i].clave && hash->tabla[i].estado == OCUPADO) {
-			guardar(tabla_nueva, hash->tabla->[i].clave, hash->tabla[i].valor, hash->cantidad, hash->capacidad);
+			guardar(tabla_nueva, hash->tabla[i].clave, hash->tabla[i].valor, hash->capacidad);
 		}
-		free(hash->tabla[i]);
+		else tabla_nueva[i].estado = VACIO;
 	}
 	free(hash->tabla);
 	hash->tabla = tabla_nueva;
 	return true;
 }
 
+/* Función que recibe una tabla de hash y una clave. 
+Recorre la tabla de hash hasta encontrar la clave y una vez encontrada devuelve
+el valor a devolver. */
+size_t recorrer(const hash_t *hash, const char *clave){
+	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
+	size_t cont = 0;
+	while (hash->tabla[indice].estado != VACIO) {
+		if (strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
+		if (indice == hash->capacidad - 1) indice = -1;
+		cont++;
+		if (cont == hash->capacidad) break;
+		incrementar(&indice);
+	}
+	return -1;
+}
+
 bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if ((hash->cantidad / hash->capacidad) >= FACTOR_CARGA_AGRANDAR) {
 		if (!hash_redimensionar(hash, hash->capacidad * FACTOR_REDIMENSION)) return false;
 	}
-	if(guardar(hash->tabla, clave, dato, ash->cantidad, hash->capacidad)) hash->cantidad++;
+	if(guardar(hash->tabla, (char*)clave, dato, hash->capacidad)) hash->cantidad++;
 	return true;
 }
 
-//CODIGO REPETIDO EN BORRAR, OBTENER Y PERTENECE?
-void *hash_borrar(hash_t *hash, const char *clave) { // destruyo dato si es dinamico?
-	if (!hash_pertenece(hash, clave)) return NULL;
-	size_t indice = hash(clave, hash->capacidad);
-	while (hash->tabla[indice] != VACIO) {
-		if (strcmp(hash->tabla[indice].clave, clave) == 0) hash->tabla[indice].estado = BORRADO;
-		incrementar(&indice);
+void *hash_borrar(hash_t *hash, const char *clave) {
+	size_t indice = recorrer(hash, clave);
+	if (indice != -1) {
+		hash->tabla[indice].estado = BORRADO;
+		hash->cantidad--;
 	}
+	else return NULL;	
+	if ((hash->cantidad / hash->capacidad) <= FACTOR_CARGA_ACHICAR) {
+		hash_redimensionar(hash, hash->capacidad / FACTOR_REDIMENSION);
+	}
+	return hash->tabla[indice].valor;	
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave) {
-	if (!hash_pertenece(hash, clave)) return NULL;
-	size_t indice = hash(clave, hash->capacidad);
-	while (hash->tabla[indice] != VACIO) {
-		if (hash->tabla[indice] == clave) return hash->tabla[indice]->valor;
-		incrementar(&indice);
-	}
+	size_t indice = recorrer(hash, clave);
+	if (indice != -1) return hash->tabla[indice].valor;
+	return NULL;
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave) {
-	size_t indice = hash(clave, hash->capacidad);
-	while (hash->tabla[indice] != VACIO) {
-		if (hash->tabla[indice] == clave) return true;
-		incrementar(&indice);
-	}
-	return false;
+	return recorrer(hash, clave) != -1;
 }
 
 size_t hash_cantidad(const hash_t *hash) {
@@ -147,9 +137,8 @@ size_t hash_cantidad(const hash_t *hash) {
 }
 
 void hash_destruir(hash_t *hash) {
-	for (int i = 0; i < hash->capacidad; i++) {
-		if(hash->destruir_dato) hash->destruir_dato(hash->tabla[i]->valor);
-		free(hash->tabla[i]);
+	if (hash->destruir_dato) {
+		for (int i = 0; i < hash->capacidad; i++) hash->destruir_dato(hash->tabla[i].valor);
 	}
 	free(hash->tabla);
 	free(hash);
@@ -163,29 +152,32 @@ struct hash_iter {
 };
 
 hash_iter_t *hash_iter_crear(const hash_t *hash) {
-	hash_iter_t *hash_iter = malloc(sizeof(hash_iter_t));
-	if (!hash_iter) return NULL;
-	hash_iter->hash = hash;
-	hash_iter->pos = 0;
-	return hash_iter;
+	hash_iter_t *iter = malloc(sizeof(hash_iter_t));
+	if (!iter) return NULL;
+	iter->hash = hash;
+	iter->pos = 0;
+	if (iter->hash->tabla[iter->pos].estado != OCUPADO) {
+		hash_iter_avanzar(iter);
+	}
+	return iter;
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter) {
-	if (hash_iter_al_final(hash_iter) return false;
-	do{
-		hash_iter->pos+;
-	} while (iter_hash->hash->tabla[hash_iter->pos)->estado != OCUPADO);
+	if (hash_iter_al_final(iter)) return false;
+	do {
+		iter->pos++;
+	} while (iter->hash->tabla[iter->pos].estado != OCUPADO);
 	return true;
 }
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter) {
-	return hash_iter->hash->tabla[hash_iter->pos]->clave;
+	return iter->hash->tabla[iter->pos].clave;
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter) {
-	return hash_iter->pos == hash_iter->hash->capacidad;
+	return iter->pos == iter->hash->capacidad;
 }
 
 void hash_iter_destruir(hash_iter_t* iter) {
-	free(hash_iter);
+	free(iter);
 }
