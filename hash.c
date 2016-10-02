@@ -50,7 +50,7 @@ void incrementar(size_t *indice) {
 
 /* Recibe una tabla de hash, una clave junto con su valor, y su capacidad e introduce la clave y su valor en la tabla. 
 Devuelve true si se debe incrementar el miembro cantidad del hash, false en caso contrario. */
-bool guardar(nodo_hash_t *tabla, char *clave, void *dato, size_t capacidad) {
+bool guardar(nodo_hash_t *tabla, const char *clave, void *dato, size_t capacidad) {
 	size_t indice = fhash(clave, (unsigned int)capacidad);
 	bool flag = false;
 	while (tabla[indice].estado != VACIO) {
@@ -61,7 +61,8 @@ bool guardar(nodo_hash_t *tabla, char *clave, void *dato, size_t capacidad) {
 		if (indice == capacidad - 1) indice = -1;
 		incrementar(&indice);
 	}
-	char clave_copiada[strlen(clave) + 1];
+	char *clave_copiada = malloc(sizeof(char) * strlen(clave) + 1);
+	//char clave_copiada[strlen(clave) + 1];
 	strcpy(clave_copiada, clave);
 	tabla[indice].clave = clave_copiada;
 	tabla[indice].estado = OCUPADO;
@@ -94,11 +95,8 @@ el valor a devolver. */
 size_t recorrer(const hash_t *hash, const char *clave){
 	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
 	size_t cont = 0;
-	while (hash->tabla[indice].estado != VACIO) {
-	char* falopa= hash->tabla[indice].clave;
-#include <stdio.h>
-printf("falopa %s\n",falopa);
-		if (strcmp(falopa, clave) == 0) return indice;
+		while (hash->tabla[indice].estado != VACIO) {
+		if (strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
 		if (indice == hash->capacidad - 1) indice = -1;
 		cont++;
 		if (cont == hash->capacidad) break;
@@ -111,17 +109,19 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if ((hash->cantidad / hash->capacidad) >= FACTOR_CARGA_AGRANDAR) {
 		if (!hash_redimensionar(hash, hash->capacidad * FACTOR_REDIMENSION)) return false;
 	}
-	if(guardar(hash->tabla, (char*)clave, dato, hash->capacidad)) hash->cantidad++;
+	if(guardar(hash->tabla, clave, dato, hash->capacidad)) hash->cantidad++;
 	return true;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave) {
 	size_t indice = recorrer(hash, clave);
 	if (indice != -1) {
+		free(hash->tabla[indice].clave);
 		hash->tabla[indice].estado = BORRADO;
 		hash->cantidad--;
+	} else {
+		return NULL;
 	}
-	else return NULL;	
 	if ((hash->cantidad / hash->capacidad) <= FACTOR_CARGA_ACHICAR) {
 		hash_redimensionar(hash, hash->capacidad / FACTOR_REDIMENSION);
 	}
