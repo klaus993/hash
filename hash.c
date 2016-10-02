@@ -33,7 +33,10 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato) {
 		free(hash);
 		return NULL;
 	}
-	for (int i = 0; i < TAM_INICIAL; i++) hash->tabla[i].estado = VACIO;
+	for (int i = 0; i < TAM_INICIAL; i++) {
+		hash->tabla[i].estado = VACIO;
+		hash->tabla[i].clave = NULL;
+	}
 	hash->destruir_dato = destruir_dato;
 	hash->cantidad = 0;
 	hash->capacidad = TAM_INICIAL;
@@ -92,7 +95,10 @@ size_t recorrer(const hash_t *hash, const char *clave){
 	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
 	size_t cont = 0;
 	while (hash->tabla[indice].estado != VACIO) {
-		if (strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
+	char* falopa= hash->tabla[indice].clave;
+#include <stdio.h>
+printf("falopa %s\n",falopa);
+		if (strcmp(falopa, clave) == 0) return indice;
 		if (indice == hash->capacidad - 1) indice = -1;
 		cont++;
 		if (cont == hash->capacidad) break;
@@ -137,8 +143,9 @@ size_t hash_cantidad(const hash_t *hash) {
 }
 
 void hash_destruir(hash_t *hash) {
-	if (hash->destruir_dato) {
-		for (int i = 0; i < hash->capacidad; i++) hash->destruir_dato(hash->tabla[i].valor);
+	for (int i = 0; i < hash->capacidad; i++){
+		if (hash->destruir_dato) hash->destruir_dato(hash->tabla[i].valor);
+		if (hash->tabla[i].clave) free(hash->tabla[i].clave);
 	}
 	free(hash->tabla);
 	free(hash);
