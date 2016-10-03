@@ -1,21 +1,24 @@
 CC = gcc
-CFLAGS = -g -std=c99 -Wall -Wconversion -Wno-sign-conversion -Werror
+CFLAGS = -g -std=c99 -Wall -Wconversion -Wno-sign-conversion
 LFLAGS =  
 FILEOUT = pruebas.out
 VALGRIND = valgrind
 TDA = hash
-PRUBEAS = pruebas_catedra
+PRUEBAS = pruebas_catedra
 VFLAGS = --leak-check=full --track-origins=yes --show-reachable=yes
 VALGRIND_V = $(VALGRIND) $(VFLAGS)
 
 all: main.o $(PRUEBAS).o $(TDA).o $(EXTRA_O) testing.o
-	$(CC) $(CFLAGS) -o $(FILEOUT) main.o $(PRUEBAS).o $(TDA).o $(EXTRA_O) testing.o $(LFLAGS) 
+	$(CC) $(CFLAGS) -o $(FILEOUT) main.o $(PRUEBAS).o $(TDA).o $(EXTRA_O) f_hash.o testing.o $(LFLAGS) 
 
 main.o: main.c $(TDA).h testing.h
 	$(CC) $(CFLAGS) -c -o main.o main.c $(LFLAGS)
 
 $(PRUEBAS).o: $(PRUEBAS).c $(TDA).h $(EXTRA_H) testing.h
 	$(CC) $(CFLAGS) -c -o $(PRUEBAS).o $(PRUEBAS).c $(LFLAGS)
+
+f_hash.o: f_hash.c f_hash.h
+	$(CC) $(CFLAGS) -c -o f_hash.o f_hash.c $(LFLAGS)
 
 $(TDA).o: $(TDA).c $(TDA).h 
 	$(CC) $(CFLAGS) -c -o $(TDA).o $(TDA).c $(LFLAGS)
@@ -29,7 +32,6 @@ testing.o: testing.c testing.h
 clean:
 	rm *.o
 	rm -r *.dSYM
-	rm *.out
 
 test:
 	$(VALGRIND_V) ./$(FILEOUT) 
