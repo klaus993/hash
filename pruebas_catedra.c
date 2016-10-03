@@ -401,16 +401,13 @@ static void prueba_hash_iterar_volumen(size_t largo)
 void pruebas_hash_catedra()
 {
     /* Ejecuta todas las pruebas unitarias. */
-<<<<<<< HEAD
-    prueba_crear_hash_vacio();
-    prueba_iterar_hash_vacio();
-=======
     //prueba_crear_hash_vacio();
     //prueba_iterar_hash_vacio();
->>>>>>> b8db90f2f8f3693223ef8336f3bafed7282096df
-    prueba_hash_insertar();
-    prueba_hash_reemplazar();
-    //prueba_hash_reemplazar_con_destruir();
+    //prueba_crear_hash_vacio();
+    //prueba_iterar_hash_vacio();
+    //prueba_hash_insertar();
+    //prueba_hash_reemplazar();
+    prueba_hash_reemplazar_con_destruir();
     //prueba_hash_borrar();
     //prueba_hash_clave_vacia();
     //prueba_hash_valor_null();

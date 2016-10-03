@@ -90,9 +90,11 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	nodo_hash_t *tabla_nueva = crear_tabla(redimension);
 	if(redimension > 0 && !tabla_nueva) return false;
 	if (hash->cantidad != 0) {
-		for (int i = 0; i < redimension; i++) {
+		for (int i = 0; i < hash->capacidad; i++) {
 			if (hash->tabla[i].estado == OCUPADO) {
-				guardar(tabla_nueva, hash->tabla[i].clave, hash->tabla[i].valor, redimension);
+				//guardar(tabla_nueva, hash->tabla[i].clave, hash->tabla[i].valor, redimension);
+				size_t indice_nuevo = fhash(hash->tabla[i].clave, (unsigned int)redimension);
+				tabla_nueva[indice_nuevo] = hash->tabla[i];
 			}
 			//else tabla_nueva[i].estado = VACIO;
 		}
@@ -110,7 +112,7 @@ size_t recorrer(const hash_t *hash, const char *clave){
 	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
 	size_t cont = 0;
 	while (hash->tabla[indice].estado != VACIO) {
-		if (strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
+		if (hash->tabla[indice].estado == OCUPADO && strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
 		if (indice == hash->capacidad - 1) indice = -1;
 		cont++;
 		if (cont == hash->capacidad) break;
@@ -128,6 +130,9 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 }
 
 void *hash_borrar(hash_t *hash, const char *clave) {
+	if (((float)(hash->cantidad - 1) / (float)hash->capacidad) <= FACTOR_CARGA_ACHICAR) {
+		hash_redimensionar(hash, hash->capacidad / FACTOR_REDIMENSION);
+	}
 	size_t indice = recorrer(hash, clave);
 	if (indice != -1) {
 		free(hash->tabla[indice].clave);
@@ -135,9 +140,6 @@ void *hash_borrar(hash_t *hash, const char *clave) {
 		hash->cantidad--;
 	} else {
 		return NULL;
-	}
-	if (((float)hash->cantidad / (float)hash->capacidad) <= FACTOR_CARGA_ACHICAR) {
-		hash_redimensionar(hash, hash->capacidad / FACTOR_REDIMENSION);
 	}
 	return hash->tabla[indice].valor;
 }
