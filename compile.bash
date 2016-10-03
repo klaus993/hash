@@ -1,3 +1,5 @@
+#!/bin/bash
+
 gcc -g -std=c99 -Wall -Wconversion -Wno-sign-conversion -c -o main.o main.c
 gcc -g -std=c99 -Wall -Wconversion -Wno-sign-conversion -c -o pruebas_catedra.o pruebas_catedra.c
 gcc -g -std=c99 -Wall -Wconversion -Wno-sign-conversion -c -o hash.o hash.c

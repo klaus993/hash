@@ -401,7 +401,7 @@ static void prueba_hash_iterar_volumen(size_t largo)
 void pruebas_hash_catedra()
 {
     /* Ejecuta todas las pruebas unitarias. */
-    prueba_crear_hash_vacio();
+    //prueba_crear_hash_vacio();
     //prueba_iterar_hash_vacio();
     prueba_hash_insertar();
     //prueba_hash_reemplazar();
