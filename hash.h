@@ -14,20 +14,21 @@ typedef struct hash_iter hash_iter_t;
 // tipo de función para destruir dato
 typedef void (*hash_destruir_dato_t)(void *);
 
-/* Crea el hash
+/* Crea el hash.
+Post: Si pudo crearlo, devuelve un puntero al hash, sino, devuelve un puntero a NULL.
  */
 hash_t *hash_crear(hash_destruir_dato_t destruir_dato);
 
-/* Guarda un elemento en el hash, si la clave ya se encuentra en la
- * estructura, la reemplaza. De no poder guardarlo devuelve false.
- * Pre: La estructura hash fue inicializada
- * Post: Se almacenó el par (clave, dato)
+/* 
+ * Pre: El hash fue creado.
+ * Post: Se almacenó el par (clave, dato). Si la clave ya se encuentra en la
+ * estructura, la reemplaza. De no poder guardarlo devuelve false, de lo contrario, devuelve true.
  */
 bool hash_guardar(hash_t *hash, const char *clave, void *dato);
 
 /* Borra un elemento del hash y devuelve el dato asociado.  Devuelve
  * NULL si el dato no estaba.
- * Pre: La estructura hash fue inicializada
+ * Pre: El hash fue creado.
  * Post: El elemento fue borrado de la estructura y se lo devolvió,
  * en el caso de que estuviera guardado.
  */
