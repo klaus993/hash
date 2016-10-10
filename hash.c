@@ -2,7 +2,6 @@
 #include "f_hash.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #define TAM_INICIAL 100
 #define FACTOR_CARGA_AGRANDAR 0.70
@@ -65,17 +64,20 @@ void incrementar(size_t *indice) {
 	*indice += 1;
 }
 
-/* Recibe la estructura hash y la variable redimension de tipo size_t y duplica
-o reduce a la mitad la capacidad de la estructura (rehash). Devuelve la nueva
-estructura rehasheada, o NULL en caso de no poder haberse hecho la redimensión. */
+/* Recibe la estructura hash y la variable redimension de tipo size_t y re hashea
+todos los datos en una nueva tabla del tamaño indicado por parámetro.
+Pre: El hash fue creado.
+Post: Devuelve true si se rehasheó correctamente, o false en caso de no poder haberse creado la tabla nueva.
+	  La tabla vieja se liberó de la memoria, y la tabla nueva es la nueva tabla del hash.
+*/
 bool hash_redimensionar(hash_t* hash, size_t redimension) {
 	nodo_hash_t *tabla_nueva = crear_tabla(redimension);
 	size_t indice_nuevo;
-	if (redimension > 0 && !tabla_nueva) return false;
+	if (!tabla_nueva) return false;
 	if (hash->cantidad != 0) {
 		for (int i = 0; i < hash->capacidad; i++) {
 			if (hash->tabla[i].estado == OCUPADO) {
-				indice_nuevo = fhash(hash->tabla[i].clave, redimension);
+				indice_nuevo = fhash(hash->tabla[i].clave, (unsigned int)redimension);
 				while (tabla_nueva[indice_nuevo].estado != VACIO) {
 					if (indice_nuevo == hash->capacidad - 1) indice_nuevo = -1;
 					incrementar(&indice_nuevo);
@@ -92,9 +94,9 @@ bool hash_redimensionar(hash_t* hash, size_t redimension) {
 
 /* Función que recibe una tabla de hash y una clave. 
 Recorre la tabla de hash hasta encontrar la clave y una vez encontrada devuelve
-el índice en el cual se encuentra la clave, o -1 si no se encuentra en la tabla. */
+el índice en el cual se encuentra la clave, o -1 si no se encuentra. */
 size_t recorrer(const hash_t *hash, const char *clave){
-	size_t indice = fhash(clave, hash->capacidad);
+	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
 	size_t cont = 0;
 	while (hash->tabla[indice].estado != VACIO) {
 		if (hash->tabla[indice].estado == OCUPADO && strcmp(hash->tabla[indice].clave, clave) == 0) return indice;
@@ -110,7 +112,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if (((double)hash->cantidad / (double)hash->capacidad) >= (double)FACTOR_CARGA_AGRANDAR) {
 		if (!hash_redimensionar(hash, hash->capacidad * FACTOR_REDIMENSION)) return false;
 	}
-	size_t indice = fhash(clave, hash->capacidad);
+	size_t indice = fhash(clave, (unsigned int)hash->capacidad);
 	while (hash->tabla[indice].estado != VACIO) {
 		if (hash->tabla[indice].estado == OCUPADO && strcmp(hash->tabla[indice].clave, clave) == 0) {
 			if (hash->destruir_dato) hash->destruir_dato(hash->tabla[indice].valor);

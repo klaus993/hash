@@ -67,9 +67,9 @@ uint32_t lookup3 (
   return c;
 }
 
-size_t fhash(const char *word, size_t hashTableSize){
+unsigned int fhash(const char *word, unsigned int hashTableSize){
   unsigned int initval;
-  size_t hashAddress;
+  unsigned int hashAddress;
 
   initval = 12345;
   hashAddress = lookup3(word, strlen(word), initval);
