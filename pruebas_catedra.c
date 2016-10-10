@@ -104,18 +104,18 @@ static void prueba_hash_reemplazar()
     hash_destruir(hash);
 }
 
-static void prueba_hash_reemplazar_con_destruir()
-{
-    hash_t* hash = hash_crear(free);
+    static void prueba_hash_reemplazar_con_destruir()
+    {
+        hash_t* hash = hash_crear(free);
 
-    char *clave1 = "perro", *valor1a, *valor1b;
-    char *clave2 = "gato", *valor2a, *valor2b;
+        char *clave1 = "perro", *valor1a, *valor1b;
+        char *clave2 = "gato", *valor2a, *valor2b;
 
-    /* Pide memoria para 4 valores */
-    valor1a = malloc(10 * sizeof(char));
-    valor1b = malloc(10 * sizeof(char));
-    valor2a = malloc(10 * sizeof(char));
-    valor2b = malloc(10 * sizeof(char));
+        /* Pide memoria para 4 valores */
+        valor1a = malloc(10 * sizeof(char));
+        valor1b = malloc(10 * sizeof(char));
+        valor2a = malloc(10 * sizeof(char));
+        valor2b = malloc(10 * sizeof(char));
 
     /* Inserta 2 valores y luego los reemplaza (debe liberar lo que reemplaza) */
     print_test("Prueba hash insertar clave1", hash_guardar(hash, clave1, valor1a));
@@ -407,11 +407,11 @@ void pruebas_hash_catedra()
     //prueba_iterar_hash_vacio();
     //prueba_hash_insertar();
     //prueba_hash_reemplazar();
-    prueba_hash_reemplazar_con_destruir();
+    //prueba_hash_reemplazar_con_destruir();
     //prueba_hash_borrar();
     //prueba_hash_clave_vacia();
     //prueba_hash_valor_null();
-    //prueba_hash_volumen(5000, true);
+    prueba_hash_volumen(5000, true);
     //prueba_hash_iterar();
     //prueba_hash_iterar_volumen(5000);
 }
