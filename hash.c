@@ -8,12 +8,6 @@
 #define FACTOR_CARGA_ACHICAR 0.15
 #define FACTOR_REDIMENSION 2
 
-/*
-const int TAM_INICIAL = 100;
-const double FACTOR_CARGA_AGRANDAR = 0.7;
-const double FACTOR_CARGA_ACHICAR = 0.15;
-const int FACTOR_REDIMENSION = 2; */
-
 /*Definición el tipo estado_t. */
 typedef enum estado {VACIO, OCUPADO, BORRADO} estado_t;
 
@@ -32,7 +26,8 @@ struct hash {
 };
 
 
-/*
+/* Crea una tabla de nodo_hash_t, inicializando los estados de los nodos en VACIO.
+Post: si se pudo crear la tabla, devuelve un puntero a la misma, sino, devuelve un puntero a NULL.
 */
 nodo_hash_t *crear_tabla(size_t tamanio) {
 	nodo_hash_t *tabla = malloc(tamanio * sizeof(nodo_hash_t));
