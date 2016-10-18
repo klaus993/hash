@@ -93,17 +93,18 @@ bool hash_redimensionar(hash_t *hash, size_t redimension) {
 	if (!tabla_nueva) {
 		return false;
 	}
+	size_t capacidad_vieja = hash->capacidad
+	hash->capacidad = redimension;
 	nodo_hash_t *tabla_vieja = hash->tabla;
 	hash->tabla = tabla_nueva;
 	if (hash->cantidad != 0) {
-		for (int i = 0; i < hash->capacidad; i++) {
+		for (int i = 0; i < capacidad_vieja; i++) {
 			if (tabla_vieja[i].estado == OCUPADO) {
 				hash_guardar(hash, tabla_vieja[i].clave, tabla_vieja[i].valor);
 			}
 		}
 	}
 	free(tabla_vieja);
-	hash->capacidad = redimension;
 	return true;
 }
 
