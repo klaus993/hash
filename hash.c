@@ -93,10 +93,10 @@ bool hash_redimensionar(hash_t *hash, size_t redimension) {
 	if (!tabla_nueva) {
 		return false;
 	}
-	size_t capacidad_vieja = hash->capacidad
+	size_t capacidad_vieja = hash->capacidad;
 	hash->capacidad = redimension;
 	nodo_hash_t *tabla_vieja = hash->tabla;
-	hash->tabla = tabla_nueva;
+	hash->tabla = tabla_nueva; 
 	if (hash->cantidad != 0) {
 		for (int i = 0; i < capacidad_vieja; i++) {
 			if (tabla_vieja[i].estado == OCUPADO) {
@@ -133,7 +133,8 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato) {
 	if (hash->tabla[indice].estado == OCUPADO && hash->destruir_dato) {
 		hash->destruir_dato(hash->tabla[indice].valor);
 	} else {
-		char *clave_copiada = strdup(clave);
+		char *clave_copiada = malloc(sizeof(char) * strlen(clave) + 1);
+		strcpy(clave_copiada, clave);
 		hash->tabla[indice].clave = clave_copiada;
 		hash->tabla[indice].estado = OCUPADO;
 		hash->cantidad++;
