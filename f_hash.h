@@ -4,3 +4,4 @@
 unsigned int fhash(const char *word, unsigned int hashTableSize);
 
 #endif
+
